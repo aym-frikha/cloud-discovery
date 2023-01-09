@@ -1,0 +1,8 @@
+---
+- name: "Prepare resources"
+  gather_facts: no
+  hosts: infra
+  roles:
+    - role: prepare_local_resources
+      tags: prepare_local
+      delegate_to: localhost

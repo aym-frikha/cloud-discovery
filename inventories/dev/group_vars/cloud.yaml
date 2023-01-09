@@ -1,0 +1,13 @@
+skip_bmc_config: true
+min_hwe_kernel: hwe-20.04
+bucket_config:
+  min_hwe_kernel: hwe-20.04   
+  disks: []
+  nics: 
+  - fabric: default
+    id: eno1
+    name: eno1
+    nic: 0
+    subnets: []
+    type: physical
+    vlan_id: 1

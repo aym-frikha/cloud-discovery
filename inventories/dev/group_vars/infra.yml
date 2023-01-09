@@ -1,0 +1,8 @@
+bond_mode: "active-backup"
+mgmt_gateway: "10.25.1.1"
+nameservers:
+  - "8.8.8.8"
+mtu: 1500
+  #Infra password here is ubuntu
+infra_password: "$6$exDY1mhS4KUYCE/2$zmn9ToZwTKLhCw.b4/b.ZRTIZM30JZ4QrOQ2aOXJ8yk96xpcCof0kxKwuX1kqLG/ygbJ1f8wxED22bTL4F46P0"
+infra_username: ubuntu

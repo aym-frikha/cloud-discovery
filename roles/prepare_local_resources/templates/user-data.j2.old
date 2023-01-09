@@ -1,0 +1,130 @@
+#cloud-config
+autoinstall:
+  version: 1
+  identity:
+    hostname: {{ hostname }}
+    password: "$6$exDY1mhS4KUYCE/2$zmn9ToZwTKLhCw.b4/b.ZRTIZM30JZ4QrOQ2aOXJ8yk96xpcCof0kxKwuX1kqLG/ygbJ1f8wxED22bTL4F46P0"
+    username: ubuntu
+  ssh:
+    allow-pw: true
+    install-server: true
+    authorized-keys:
+      - {{ ssh_keys.rsa_public }}
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+  network:
+    ethernets:
+      ens5:
+        addresses: []
+        dhcp4: false
+        dhcp6: false
+      ens6:
+        addresses: []
+        dhcp4: false
+        dhcp6: false
+      ens7:
+        mtu: {{ mtu }}
+        addresses: []
+        dhcp4: false
+        dhcp6: false
+      ens8:
+        mtu: {{ mtu }}
+        addresses: []
+        dhcp4: false
+        dhcp6: false
+      ens9:
+        mtu: {{ mtu }}
+        addresses: []
+        dhcp4: false
+        dhcp6: false
+      ens10:
+        mtu: {{ mtu }}
+        addresses: []
+        dhcp4: false
+        dhcp6: false
+    version: 2
+    vlans:
+      bond0.108:
+        dhcp4: false
+        id: 108
+        link: bond0
+        mtu: {{ mtu }}
+      bond1.1741:
+        dhcp4: false
+        id: 1741
+        link: bond1
+        mtu: {{ mtu }}
+    bonds:
+      bond0:
+        addresses: []
+        mtu: {{ mtu }}
+        interfaces:
+          - ens6
+          - ens9
+        parameters:
+          mode: {{ bond_mode }}
+      bond1:
+        addresses: []
+        mtu: {{ mtu }}
+        interfaces:
+          - ens7
+          - ens10
+        parameters:
+          mode: {{ bond_mode }}
+      bondM:
+        addresses: []
+        interfaces:
+          - ens5
+          - ens8
+        parameters:
+          mode: {{ bond_mode }}
+    bridges:
+      broam:
+        addresses: [{{ mgmt_address }}]
+        interfaces: [bondM]
+        gateway4: {{ mgmt_gateway }}
+        dhcp4: false
+        nameservers:
+          addresses:
+              - {{ nameservers[0] }}
+              - {{ nameservers[1] }}
+          search: []
+        parameters:
+          forward-delay: 0
+          priority: 0
+          stp: false
+      brinternal:
+        addresses: [{{ brinternal_address }}]
+        interfaces: [bond0.108]
+        mtu: {{ mtu }}
+      brexternal:
+        addresses: [{{ brexternal_address }}]
+        interfaces: [bond1.1741]
+        mtu: {{ mtu }}
+  user-data:
+    disable_root: false 
+    users:
+      - default
+      - name: ubuntu
+        ssh-authorized-keys: 
+          - {{ ssh_keys.rsa_public }}
+        sudo: ALL=(ALL) NOPASSWD:ALL
+        groups: sudo
+        shell: /bin/bash
+    ssh_keys:
+      rsa_private: {{ ssh_keys.rsa_private }}
+      rsa_public: {{ ssh_keys.rsa_public }} 
+  late-commands:
+    - sudo sed -i -e "s/^\(GRUB_CMDLINE_LINUX=\).*/\1\"console=tty0 console=ttyS0,115200n8\"/" /target/etc/default/grub
+    - curtin in-target --target /target update-grub2
+    - |
+      cat <<EOF |  tee /target/etc/environment
+      PATH="/snap/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
+      LC_ALL="en_US.UTF-8"
+      LANG="en_US.UTF-8"
+      LANGUAGE="en_US:en"
+      EDITOR="vim"
+      EOF
+    - shutdown -h now
+

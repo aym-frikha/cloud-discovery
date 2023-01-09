@@ -1,0 +1,5 @@
+---
+dev_environment: true
+iso_file: ubuntu-20.04.5-live-server-amd64.iso
+iso_url: https://releases.ubuntu.com/20.04/ubuntu-20.04.5-live-server-amd64.iso
+modified_iso_extension: modded

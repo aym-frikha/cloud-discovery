@@ -1,0 +1,9 @@
+[devservers:children]
+infra
+cloud
+
+[infra]
+infra01
+
+[cloud]
+cloud01

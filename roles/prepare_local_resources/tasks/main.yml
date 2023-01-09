@@ -1,0 +1,30 @@
+---
+- name: Prepare resources
+  include: common.yml
+  run_once: yes
+
+#########################################
+#  Prepare seed ISO for all infra nodes #
+#########################################
+
+- name: Create seeds directory
+  file:
+    path: resources/seed/
+    state: directory
+
+- name: Create meta-data files
+  copy:
+    content: ""
+    dest: resources/seed/meta-data
+
+- name: Render user-data
+  template:
+    src: user-data.j2
+    dest: resources/seed/user-data
+  register: user_data
+
+- name: Create iso seed
+  command: cloud-localds seed_discovery.iso user-data meta-data
+  args:
+    chdir: resources/seed/
+  when: user_data.changed

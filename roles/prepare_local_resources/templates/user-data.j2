@@ -1,0 +1,69 @@
+#jinja2: lstrip_blocks: True, trim_blocks: True
+#cloud-config
+autoinstall:
+  version: 1
+  identity:
+    hostname: {{ hostname }}
+    password: {{ infra_password }}
+    username: {{ infra_username }}
+  ssh:
+    allow-pw: true
+    install-server: true
+  storage:
+    swap:
+        size: 0
+    config:
+      - type: disk
+        id: disk0
+        path: /dev/sda
+        preserve: false
+        grub_device: true
+        wipe: superblock-recursive
+        preserve: false
+        ptable: gpt
+      - type: partition
+        id: disk0-part0
+        device: disk0
+        flag: bios_grub
+        size: 1MB
+      - type: partition
+        id: disk0-part1
+        device: disk0
+        size: -1
+      - type: lvm_volgroup
+        id: vg0
+        name: vg0
+        devices:
+          - disk0-part1
+      - type: lvm_partition
+        id: lvm_part0
+        name: root-parition
+        volgroup: vg0
+        size: 100%
+      - type: format
+        id: lvm_part0-fs
+        fstype: ext4
+        label: root
+        volume: lvm_part0
+      - id: lvm_part0-fs-mount0
+        type: mount
+        path: /
+        device: lvm_part0-fs
+  user-data:
+    disable_root: false
+    write_files:
+    - content: "ubuntu ALL=(ALL) NOPASSWD: ALL"
+      path: /etc/sudoers.d/99-ubuntu-deploy
+      permissions: 0o440
+      owner: root:root
+      defer: true
+    runcmd:
+      - [ touch, /home/ubuntu/toto.txt ]
+  late-commands:
+    - sudo sed -i -e "s/^\(GRUB_CMDLINE_LINUX=\).*/\1\"console=tty0 console=ttyS0,115200n8\"/" /target/etc/default/grub
+    - curtin in-target --target /target update-grub2
+    - |
+      cat <<EOF |  tee /target/etc/environment
+      PATH="/snap/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
+      EOF
+    - reboot

@@ -1,0 +1,41 @@
+---
+- name: Creates resources directory
+  file:
+    path: resources
+    state: directory
+
+- name: Check that the modified ubuntu iso file exists
+  stat:
+    path: "resources/{{ iso_file[:-4] }}-{{ modified_iso_extension }}.iso"
+  register: iso_modified_check
+
+- name: Download ubuntu iso file if it does not exist
+  get_url:
+    url: "{{ iso_url }}"
+    dest: "resources/{{ iso_file }}"
+
+- name: Download livefs-editor archive
+  ansible.builtin.git:
+    repo: 'https://github.com/mwhudson/livefs-editor.git'
+    dest: 'resources/livefs-editor'
+    version: main
+
+- name: Copy modification script to the resources folder
+  template:
+    src: modify-iso.sh
+    dest: resources/
+    mode: a+x
+
+- name: Copy iso configuration script to the resources folder
+  template:
+    src: iso-config.yaml.j2 
+    dest: resources/iso-config.yaml
+  register: iso_config
+
+- name: Modify the original iso file
+  command: ./modify-iso.sh
+  become: true
+  when: not iso_modified_check.stat.exists or iso_config.changed
+  args:
+    chdir: resources
+
